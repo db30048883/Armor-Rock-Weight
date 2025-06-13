@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Armor Rock Weigher</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    input {
+      display: block;
+      margin: 0.2rem 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .results {
+      margin-top: 1rem;
+    }
+    button {
+      margin: 0.5rem 0;
+      display: block;
+      width: 100%;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <h1>Armor Rock Weigher</h1>
+  <p>Enter up to 100 stone weights:</p>
+  <div id="inputs"></div>
+  <button onclick="calculate()">Calculate</button>
+  <button onclick="saveLog()">Save Result to Log</button>
+  <button onclick="viewLogs()">View Saved Logs</button>
+  <div class="results" id="results"></div>
+  <div class="results" id="logs"></div>
+
+  <script>
+    const inputContainer = document.getElementById("inputs");
+    for (let i = 0; i < 100; i++) {
+      const input = document.createElement("input");
+      input.type = "number";
+      input.placeholder = `Stone ${i + 1}`;
+      inputContainer.appendChild(input);
+    }
+
+    function calculate() {
+      const weights = Array.from(inputContainer.querySelectorAll("input"))
+        .map(input => parseFloat(input.value))
+        .filter(val => !isNaN(val));
+
+      const count = weights.length;
+      if (count === 0) return;
+
+      const avg = weights.reduce((a, b) => a + b, 0) / count;
+      const outOfSpec = weights.filter(w => w < 3700 || w > 7500);
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = `
+        <strong>Total Stones:</strong> ${count}<br>
+        <strong>Average Weight:</strong> ${avg.toFixed(2)} lbs (${avg >= 5400 ? "PASS" : "FAIL"})<br>
+        <strong>Stones out of range (3700-7500 lbs):</strong> ${outOfSpec.length}
+      `;
+    }
+
+    function saveLog() {
+      const log = document.getElementById("results").innerText;
+      const logs = JSON.parse(localStorage.getItem("armorRockLogs") || "[]");
+      logs.push({ timestamp: new Date().toLocaleString(), log });
+      localStorage.setItem("armorRockLogs", JSON.stringify(logs));
+      alert("Log saved!");
+    }
+
+    function viewLogs() {
+      const logsDiv = document.getElementById("logs");
+      const logs = JSON.parse(localStorage.getItem("armorRockLogs") || "[]");
+      logsDiv.innerHTML = "<h3>Saved Logs:</h3>" + logs.map(l => `<pre>${l.timestamp}\n${l.log}</pre>`).join("<hr>");
+    }
+  </script>
+</body>
+</html>
