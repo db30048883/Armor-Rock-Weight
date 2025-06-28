@@ -102,9 +102,15 @@
     <div class="numpad" id="numpad"></div>
 
     <button class="action" onclick="finishLog()">Finish + Save Log</button>
-    <button class="action" onclick="viewSavedLogs()">View Saved Logs</button>
-    <button class="action" onclick="downloadLastLog()">Download Last Log (.txt)</button>
-    <button class="action" onclick="downloadCSV()">Export Last Log (.csv)</button>
+    <details>
+      <summary style="background-color: orange; color: white; padding: 14px; margin: 5px 0; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; text-align: center;">More Options</summary>
+      <div style="margin-top: 10px;">
+        <button class="action" onclick="viewSavedLogs()">View Saved Logs</button>
+        <button class="action" onclick="downloadLastLog()">Download Last Log (.txt)</button>
+        <button class="action" onclick="downloadCSV()">Export Last Log (.csv)</button>
+        <button class="action" onclick="resetLog()">Reset Log</button>
+      </div>
+    </details>
 
     <div id="results"></div>
     <div id="rockList"></div>
@@ -229,10 +235,15 @@
         return;
       }
       const log = logs[logs.length - 1];
-      const csv = [
-        ['Timestamp', 'Total Rocks', 'Total Weight', 'Average Weight', 'Out of Spec', 'Weights'],
-        [log.timestamp, log.total, log.totalWeight, log.avgWeight, log.outOfSpec, `"${log.weights.join(', ')}"`]
-      ].map(row => row.join(',')).join('\n');
+      const header = ['Metric', 'Value'];
+      const data = [
+        ['Total Rocks', log.total],
+        ['Total Weight', log.totalWeight],
+        ['Average Weight', log.avgWeight],
+        ['Out of Spec', log.outOfSpec],
+        ...log.weights.map((w, i) => [`Rock ${i + 1}`, w])
+      ];
+      const csv = [header, ...data].map(row => row.join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -242,6 +253,15 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    }
+
+    function resetLog() {
+      if (confirm('Are you sure you want to reset the current log? This cannot be undone.')) {
+        rockWeights = [];
+        currentEntry = '';
+        input.value = '';
+        updateDisplay();
+      }
     }
   </script>
 </body>
